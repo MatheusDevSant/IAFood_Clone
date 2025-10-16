@@ -12,6 +12,7 @@ export default function Cart() {
   const { user } = useAuth();
   const [coupon, setCoupon] = useState("");
   const [checkoutData, setCheckoutData] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("sandbox_card");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -51,6 +52,7 @@ export default function Cart() {
 
       const token = localStorage.getItem("token");
       const body = {
+        payment_method: paymentMethod,
         merchant_id: items[0]?.merchant_id || 1, // apenas exemplo
         items: items.map((i) => ({
           item_id: i.id,
@@ -70,6 +72,29 @@ export default function Cart() {
     } catch (err) {
       console.error(err);
       setMessage("❌ Erro ao criar pedido");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Simula um pagamento sandbox (apenas UX) antes de criar o pedido
+  const handleSandboxPayment = async () => {
+    if (!checkoutData) return setMessage("⚠️ Calcule o total antes de pagar");
+    if (!user) return setMessage("⚠️ Faça login para finalizar o pedido");
+
+    try {
+      setLoading(true);
+      setMessage("⏳ Processando pagamento (sandbox)...");
+
+      // simula delay de comunicação com gateway
+      await new Promise((res) => setTimeout(res, 1000));
+
+      // pagamento 'autorizado' no sandbox -> cria pedido
+      setMessage("✅ Pagamento autorizado (sandbox). Criando pedido...");
+      await handleCreateOrder();
+    } catch (err) {
+      console.error(err);
+      setMessage("❌ Falha no pagamento sandbox");
     } finally {
       setLoading(false);
     }
@@ -150,6 +175,34 @@ export default function Cart() {
                   "Finalizar Pedido"
                 )}
               </Button>
+            )}
+
+            {checkoutData && (
+              <div className="mt-4">
+                <p className="text-sm text-gray-600 mb-2">Método de pagamento:</p>
+                <div className="flex gap-2 mb-3">
+                  <button
+                    onClick={() => setPaymentMethod("sandbox_card")}
+                    className={`px-3 py-2 rounded ${paymentMethod === "sandbox_card" ? "bg-green-600 text-white" : "bg-gray-100 dark:bg-gray-800"}`}
+                  >Cartão </button>
+                  <button
+                    onClick={() => setPaymentMethod("sandbox_pix")}
+                    className={`px-3 py-2 rounded ${paymentMethod === "sandbox_pix" ? "bg-green-600 text-white" : "bg-gray-100 dark:bg-gray-800"}`}
+                  >PIX </button>
+                  <button
+                    onClick={() => setPaymentMethod("sandbox_wallet")}
+                    className={`px-3 py-2 rounded ${paymentMethod === "sandbox_wallet" ? "bg-green-600 text-white" : "bg-gray-100 dark:bg-gray-800"}`}
+                  >Carteira </button>
+                </div>
+
+                <Button
+                  onClick={handleSandboxPayment}
+                  disabled={loading}
+                  className="w-full bg-amber-600 hover:bg-amber-700 text-white py-3"
+                >
+                  {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "Pagar"}
+                </Button>
+              </div>
             )}
           </>
         )}

@@ -38,7 +38,7 @@ export default function Profile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const { data } = await api.get("/auth/profile");
+        const { data } = await api.get("/auth/me");
         setProfile(data);
 
         // simulação leve de métricas (em breve viremos do backend)
