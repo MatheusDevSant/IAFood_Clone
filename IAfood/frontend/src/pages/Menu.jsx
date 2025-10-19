@@ -57,38 +57,61 @@ export default function Menu() {
 
             <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
               {cat.items.map((item) => (
-                <Card
-                  key={item.id}
-                  className="bg-card border border-border hover:border-primary transition"
-                >
-                  <CardContent className="p-5">
-                    <h3 className="font-semibold text-lg">{item.name}</h3>
-                    <p className="text-muted-foreground text-sm mb-2">
-                      {item.description}
-                    </p>
-                    <p className="text-primary font-bold text-lg mb-3">
-                      R$ {Number(item.price).toFixed(2)}
-                    </p>
-
-                    <Button
-                      onClick={() =>
-                        addItem({
-                          ...item,
-                          merchant_id: Number(id), // 👈 garante que o backend saiba de qual restaurante vem o item
-                          price: Number(item.price), // 👈 garante tipo numérico
-                        })
-                      }
-                      className="w-full bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      Adicionar
-                    </Button>
-                  </CardContent>
-                </Card>
+                <MenuItemCard key={item.id} item={item} addItem={addItem} merchantId={id} />
               ))}
             </div>
           </div>
         ))}
       </div>
     </div>
+  );
+}
+
+function MenuItemCard({ item, addItem, merchantId }) {
+  const [options, setOptions] = useState({});
+
+  // parse simple options from description tags like [opcion1,opcion2]
+  const parsedOptions = (item.options_json && JSON.parse(item.options_json)) || null;
+
+  const toggleOption = (key) => {
+    setOptions((s) => ({ ...s, [key]: !s[key] }));
+  };
+
+  return (
+    <Card className="bg-card border border-border hover:border-primary transition">
+      <CardContent className="p-5">
+        <h3 className="font-semibold text-lg">{item.name}</h3>
+        <p className="text-muted-foreground text-sm mb-2">{item.description}</p>
+        <p className="text-primary font-bold text-lg mb-3">R$ {Number(item.price).toFixed(2)}</p>
+
+        {parsedOptions && (
+          <div className="mb-3 text-sm">
+            <div className="font-medium mb-1">Opções</div>
+            <div className="flex flex-col gap-2">
+              {parsedOptions.map((opt, idx) => (
+                <label key={idx} className="flex items-center gap-2">
+                  <input type="checkbox" checked={!!options[opt]} onChange={() => toggleOption(opt)} />
+                  <span>{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <Button
+          onClick={() =>
+            addItem({
+              ...item,
+              merchant_id: Number(merchantId),
+              price: Number(item.price),
+              options,
+            })
+          }
+          className="w-full bg-green-600 hover:bg-green-700 text-white"
+        >
+          Adicionar
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

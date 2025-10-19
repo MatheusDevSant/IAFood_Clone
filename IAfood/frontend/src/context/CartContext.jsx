@@ -6,13 +6,18 @@ export const CartProvider = ({ children }) => {
   const [items, setItems] = useState([]);
 
   const addItem = (item) => {
-  const normalizedItem = { ...item, price: Number(item.price) || 0 }; // força tipo numérico
-  const exists = items.find((i) => i.id === normalizedItem.id);
+  const normalizedItem = { ...item, price: Number(item.price) || 0, options: item.options || {} }; // força tipo numérico
+  // Considera opções como parte da identidade do item no carrinho
+  const exists = items.find(
+    (i) => i.id === normalizedItem.id && JSON.stringify(i.options || {}) === JSON.stringify(normalizedItem.options || {})
+  );
 
   if (exists) {
     setItems(
       items.map((i) =>
-        i.id === normalizedItem.id ? { ...i, qty: i.qty + 1 } : i
+        i.id === normalizedItem.id && JSON.stringify(i.options || {}) === JSON.stringify(normalizedItem.options || {})
+          ? { ...i, qty: i.qty + 1 }
+          : i
       )
     );
   } else {

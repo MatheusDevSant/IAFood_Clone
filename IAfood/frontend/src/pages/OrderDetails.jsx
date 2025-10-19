@@ -10,13 +10,15 @@ import {
   CookingPot,
 } from "lucide-react";
 import { io } from "socket.io-client";
+import OrderChat from "@/components/OrderChat";
+import MapLeaflet from "@/components/MapLeaflet";
 
 export default function OrderDetails() {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 🚀 Conecta ao Socket.io com logs e reconexão
+  // Conecta ao Socket.io com logs e tentativa de reconexão
   useEffect(() => {
     const socket = io("http://localhost:3000", {
       transports: ["websocket"],
@@ -32,10 +34,17 @@ export default function OrderDetails() {
     });
 
     socket.on("orderStatusUpdated", ({ orderId, status }) => {
-  if (String(orderId) === String(id)) {
-    setOrder((prev) => (prev ? { ...prev, status } : prev));
-  }
-});
+      if (String(orderId) === String(id)) {
+        setOrder((prev) => (prev ? { ...prev, status } : prev));
+      }
+    });
+
+    // Recebe localizacao do entregador (simulação)
+    socket.on("order:location", ({ orderId, lat, lng, distance_km, eta_minutes }) => {
+      if (String(orderId) === String(id)) {
+        setOrder((prev) => (prev ? { ...prev, courier_location: { lat, lng, distance_km, eta_minutes } } : prev));
+      }
+    });
 
 
     socket.on("disconnect", () => {
@@ -47,7 +56,7 @@ export default function OrderDetails() {
     };
   }, [id]);
 
-  // 🔁 Polling de segurança (fallback a cada 5s)
+  // Polling de segurança (fallback a cada 5s)
   useEffect(() => {
     const fetchOrder = async () => {
       try {
@@ -68,7 +77,7 @@ export default function OrderDetails() {
     return () => clearInterval(interval);
   }, [id]);
 
-  // ⏳ Estado de carregamento
+  // Estado de carregamento
   if (loading)
     return (
       <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-800">
@@ -161,6 +170,42 @@ export default function OrderDetails() {
         ))}
       </ul>
 
+        {/* Chat simples*/}
+        <div className="mb-6">
+          <h3 className="font-semibold mb-2">Chat do Pedido</h3>
+          <OrderChat orderId={order.id} />
+        </div>
+
+        {/* Mapa com localização do entregador e rota */}
+        <div className="mb-6">
+          <h3 className="font-semibold mb-2">Rastreamento</h3>
+          <MapLeaflet
+            center={
+              order.courier_location
+                ? [order.courier_location.lat, order.courier_location.lng]
+                : (order.merchant_lat && order.merchant_lng ? [order.merchant_lat, order.merchant_lng] : [-23.55, -46.63])
+            }
+            markers={
+              [
+                order.merchant_lat && order.merchant_lng ? { lat: order.merchant_lat, lng: order.merchant_lng, label: 'Restaurante' } : null,
+                order.address_lat && order.address_lng ? { lat: order.address_lat, lng: order.address_lng, label: 'Destino' } : null,
+                order.courier_location ? { lat: order.courier_location.lat, lng: order.courier_location.lng, label: 'Entregador' } : null,
+              ].filter(Boolean)
+            }
+            polyline={
+              // se temos courier_location, desenha linha merchant -> courier -> address
+              order.courier_location && order.merchant_lat && order.address_lat
+                ? [
+                    { lat: order.merchant_lat, lng: order.merchant_lng },
+                    { lat: order.courier_location.lat, lng: order.courier_location.lng },
+                    { lat: order.address_lat, lng: order.address_lng },
+                  ]
+                : []
+            }
+            height={360}
+          />
+        </div>
+
       {/* 💰 Totais */}
       <div className="text-right">
         <p className="text-sm text-gray-500">
@@ -175,6 +220,12 @@ export default function OrderDetails() {
             ? new Date(order.created_at).toLocaleString("pt-BR")
             : "--"}
         </p>
+        {order.courier_location && (
+          <div className="mt-3 text-sm text-gray-600">
+            <div>📍 {order.courier_location.distance_km} km do destino</div>
+            <div>⏱ ETA: {order.courier_location.eta_minutes} min</div>
+          </div>
+        )}
       </div>
     </div>
   );

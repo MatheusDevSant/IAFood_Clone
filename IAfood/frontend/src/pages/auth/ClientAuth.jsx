@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext"; // ✅ usa o contexto
 import { api } from "@/lib/api"; // ✅ usa o axios configurado
@@ -8,6 +9,7 @@ export default function ClientAuth() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
   const [msg, setMsg] = useState("");
   const { login } = useAuth(); // função global
+  const navigate = useNavigate();
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -21,6 +23,15 @@ export default function ClientAuth() {
           : { email: form.email, password: form.password, role: "client" };
 
       const { data } = await api.post(url, body);
+      if (mode === "signup") {
+        // demo: redireciona para tela de verificação com fluxo mock
+        const pending = { role: "client", user: { name: form.name, email: form.email, phone: form.phone } };
+        sessionStorage.setItem("pending_verification", JSON.stringify(pending));
+        navigate("/auth/verify?role=client");
+        return;
+      }
+
+      // login normal (modo login)
       login(data.token); // ✅ guarda token no AuthContext
       setMsg("✅ Sucesso! Você está autenticado.");
     } catch (err) {
