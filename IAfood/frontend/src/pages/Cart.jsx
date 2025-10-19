@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
@@ -6,12 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
+import MapLeaflet from "@/components/MapLeaflet";
+import AddressModal from "@/components/AddressModal";
 
 export default function Cart() {
   const { items, clearCart, subtotal } = useCart();
   const { user } = useAuth();
   const [coupon, setCoupon] = useState("");
   const [checkoutData, setCheckoutData] = useState(null);
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [newAddress, setNewAddress] = useState({ label: '', address_line: '', city: '', state: '', postal_code: '', lat: '', lng: '' });
+  const [position, setPosition] = useState({ lat: newAddress.lat || -23.55, lng: newAddress.lng || -46.63 });
   const [paymentMethod, setPaymentMethod] = useState("sandbox_card");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -21,12 +28,11 @@ export default function Cart() {
       setLoading(true);
       setMessage("");
 
+      // solicita quote ao backend incluindo address_id quando disponível
       const body = {
-        items: items.map((i) => ({
-          item_id: i.id,
-          qty: i.qty,
-        })),
+        items: items.map((i) => ({ item_id: i.id, qty: i.qty })),
         coupon,
+        address_id: selectedAddressId,
       };
 
       const { data } = await axios.post(
@@ -59,6 +65,7 @@ export default function Cart() {
           qty: i.qty,
           price: i.price,
         })),
+        address_id: selectedAddressId,
         coupon,
       };
 
@@ -75,6 +82,61 @@ export default function Cart() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Carrega endereços do usuário logado para seleção
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const { data } = await axios.get('http://localhost:3000/addresses', { headers: { Authorization: `Bearer ${token}` } });
+        setAddresses(data || []);
+        if (data && data.length > 0) setSelectedAddressId(data[0].id);
+      } catch (e) {
+        console.error('Erro ao carregar endereços:', e);
+      }
+    };
+    load();
+  }, [user]);
+
+  // agora aceita um payload opcional (usado pelo AddressModal)
+  const handleCreateAddress = async (addrPayload = null) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return setMessage('⚠️ Faça login para adicionar endereço');
+
+      // prioriza payload passado, senão usa estado local/newAddress
+      const source = addrPayload || newAddress;
+      const payload = { ...source, lat: source.lat || position.lat, lng: source.lng || position.lng };
+      if (!payload.lat || !payload.lng) return setMessage('⚠️ Latitude e longitude são obrigatórias');
+
+      const { data } = await axios.post('http://localhost:3000/addresses', payload, { headers: { Authorization: `Bearer ${token}` } });
+      const created = { ...payload, id: data.id };
+      setAddresses((s) => [created, ...s]);
+      setSelectedAddressId(data.id);
+      setShowAddressModal(false);
+      setNewAddress({ label: '', address_line: '', city: '', state: '', postal_code: '', lat: '', lng: '' });
+      setMessage('✅ Endereço salvo e selecionado');
+    } catch (e) {
+      console.error('Erro ao criar endereço:', e);
+      setMessage('❌ Falha ao salvar endereço');
+    }
+  };
+
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) return setMessage('Navegador não suporta geolocalização');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setPosition({ lat, lng });
+        setNewAddress((n) => ({ ...n, lat, lng }));
+        setMessage('✅ Localização obtida');
+      },
+      (err) => setMessage('❌ Não foi possível obter localização: ' + err.message),
+      { enableHighAccuracy: true, timeout: 5000 }
+    );
   };
 
   // Simula um pagamento sandbox (apenas UX) antes de criar o pedido
@@ -149,6 +211,39 @@ export default function Cart() {
                 {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "Calcular Total"}
               </Button>
             </div>
+
+            {/* Seletor de endereços do usuário (necessário para cálculo de frete/entrega) */}
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">Endereço de entrega:</p>
+              {addresses.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhum endereço salvo. Vá em Perfil para adicionar.</p>
+              ) : (
+                <select
+                  value={selectedAddressId || ''}
+                  onChange={(e) => setSelectedAddressId(Number(e.target.value))}
+                  className="w-full p-2 border rounded"
+                >
+                  {addresses.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.label || a.address_line || `${a.city} - ${a.state}`}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <div className="mt-2 flex gap-2">
+                <button onClick={() => setShowAddressModal(true)} className="px-3 py-2 bg-blue-500 text-white rounded">Adicionar endereço</button>
+                <button onClick={() => window.location.href = '/profile'} className="px-3 py-2 bg-gray-200 rounded">Ir para Perfil</button>
+              </div>
+            </div>
+
+            {showAddressModal && (
+              <AddressModal
+                initial={newAddress}
+                title="Adicionar endereço"
+                onCancel={() => setShowAddressModal(false)}
+                onSave={(payload) => handleCreateAddress(payload)}
+              />
+            )}
 
             {checkoutData && (
               <div className="border-t border-border pt-4 mb-6 text-sm">

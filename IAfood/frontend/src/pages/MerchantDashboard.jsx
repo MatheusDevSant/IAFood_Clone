@@ -7,6 +7,7 @@ import { Loader2, CheckCircle2, Clock, Truck } from "lucide-react";
 import { api } from "@/lib/api";
 import { io } from "socket.io-client";
 import { toast } from "@/hooks/use-toast";
+import MapLeaflet from "@/components/MapLeaflet";
 
 export default function MerchantDashboard() {
   const { user, loading } = useAuth();
@@ -118,6 +119,21 @@ export default function MerchantDashboard() {
     }
   };
 
+  // localização do restaurante (picker)
+  const [restLocation, setRestLocation] = useState({ lat: -23.55, lng: -46.63 });
+  const saveRestaurantLocation = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      // cria um endereço para o restaurante no banco
+      await api.post('/addresses', { label: 'Restaurante', lat: restLocation.lat, lng: restLocation.lng }, { headers: { Authorization: `Bearer ${token}` } });
+      toast({ title: 'Localização salva', description: 'Local do restaurante atualizado.' });
+    } catch (e) {
+      console.error('Erro ao salvar localização', e);
+      toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar localização.' });
+    }
+  };
+
   if (fetching) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -131,6 +147,18 @@ export default function MerchantDashboard() {
       <h1 className="text-3xl font-extrabold mb-8 bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
         🍽️ Painel do Restaurante
       </h1>
+
+      {/* Mapa do restaurante (demo) */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-2">Localização do Restaurante</h3>
+        <div className="mb-3">
+          <MapLeaflet center={[restLocation.lat, restLocation.lng]} zoom={15} picker onChange={(p) => setRestLocation(p)} markers={[{ lat: restLocation.lat, lng: restLocation.lng, label: 'Meu Restaurante' }]} />
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={saveRestaurantLocation} className="bg-green-600 hover:bg-green-700 text-white">Salvar localização</Button>
+          <Button onClick={() => { setRestLocation({ lat: -23.55, lng: -46.63 }); }} className="bg-gray-200">Reset</Button>
+        </div>
+      </div>
 
       {orders.length === 0 ? (
         <p className="text-gray-500 text-center">

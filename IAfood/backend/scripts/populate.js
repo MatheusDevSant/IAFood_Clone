@@ -11,6 +11,12 @@ const mysql = require('mysql2/promise');
 
   try {
     console.log('🧹 Limpando banco de dados...');
+    // delete in order to avoid foreign key constraint errors
+    await db.query('DELETE FROM order_items');
+    await db.query('DELETE FROM assignments');
+    await db.query('DELETE FROM orders');
+    await db.query('DELETE FROM couriers');
+    await db.query('DELETE FROM addresses');
     await db.query('DELETE FROM menu_items');
     await db.query('DELETE FROM menus');
     await db.query('DELETE FROM merchants');
@@ -102,6 +108,21 @@ const mysql = require('mysql2/promise');
     }
 
     console.log('✅ Banco populado com sucesso com cardápios reais!');
+    // Criar um usuário cliente e alguns endereços para demonstração
+    console.log('👤 Criando usuário cliente e entregador de teste...');
+    // Observação: mantemos os emails com sufixo 'demo' para teste, mas os nomes são genéricos
+    const [clientUser] = await db.query(`INSERT INTO users (role, name, email, phone, password_hash) VALUES ('client', ?, ?, ?, '123')`, ['Cliente', 'cliente@demo.com', '11988887777']);
+    const clientId = clientUser.insertId;
+
+    // cria dois endereços para o cliente (próximos aos restaurants)
+    await db.query(`INSERT INTO addresses (user_id, geohash, lat, lng, label, address_line, city, state, postal_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [clientId, null, -23.551, -46.633, 'Casa Demo', 'Rua Demo 123', 'São Paulo', 'SP', '01000-000']);
+    await db.query(`INSERT INTO addresses (user_id, geohash, lat, lng, label, address_line, city, state, postal_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [clientId, null, -23.554, -46.637, 'Trabalho Demo', 'Av. Demo 45', 'São Paulo', 'SP', '01000-001']);
+
+    // cria um entregador (usuário + registro em couriers)
+    const [courierUser] = await db.query(`INSERT INTO users (role, name, email, phone, password_hash) VALUES ('courier', ?, ?, ?, '123')`, ['Entregador', 'courier@demo.com', '11977776666']);
+    const courierUserId = courierUser.insertId;
+    await db.query(`INSERT INTO couriers (user_id, is_online, lat, lng, rating, last_active) VALUES (?, 1, ?, ?, 4.8, NOW())`, [courierUserId, -23.552, -46.635]);
+
     await db.end();
   } catch (err) {
     console.error('❌ Erro ao popular banco:', err);

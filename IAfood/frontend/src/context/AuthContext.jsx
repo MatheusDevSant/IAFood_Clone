@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
+import CourierAssignmentListener from "@/components/CourierAssignmentListener";
 
 const AuthContext = createContext();
 
@@ -78,6 +79,7 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={{ user, loading, initialized, login, logout }}>
       {children}
+      {user && user.role === "courier" && <CourierAssignmentListener user={user} />}
     </AuthContext.Provider>
   );
 };
