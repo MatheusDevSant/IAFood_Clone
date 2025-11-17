@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import PageContainer from "@/components/ui/PageContainer";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle2, Clock, Truck } from "lucide-react";
 import { api } from "@/lib/api";
@@ -143,9 +144,10 @@ export default function MerchantDashboard() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10">
-      <h1 className="text-3xl font-extrabold mb-8 bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-        🍽️ Painel do Restaurante
+    <PageContainer innerClassName="max-w-5xl mx-auto px-6 py-10">
+      <>
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight drop-shadow-sm mb-8 bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
+          🍽️ Painel do Restaurante
       </h1>
 
       {/* Mapa do restaurante (demo) */}
@@ -155,8 +157,8 @@ export default function MerchantDashboard() {
           <MapLeaflet center={[restLocation.lat, restLocation.lng]} zoom={15} picker onChange={(p) => setRestLocation(p)} markers={[{ lat: restLocation.lat, lng: restLocation.lng, label: 'Meu Restaurante' }]} />
         </div>
         <div className="flex gap-2">
-          <Button onClick={saveRestaurantLocation} className="bg-green-600 hover:bg-green-700 text-white">Salvar localização</Button>
-          <Button onClick={() => { setRestLocation({ lat: -23.55, lng: -46.63 }); }} className="bg-gray-200">Reset</Button>
+          <Button onClick={saveRestaurantLocation} className="bg-green-600 hover:bg-green-700 text-white py-3 rounded-md">Salvar localização</Button>
+          <Button onClick={() => { setRestLocation({ lat: -23.55, lng: -46.63 }); }} className="bg-gray-200 px-3 py-3 rounded-md">Reset</Button>
         </div>
       </div>
 
@@ -209,7 +211,7 @@ export default function MerchantDashboard() {
                     <Button
                       size="sm"
                       onClick={() => handleStatusUpdate(order.id, "ACCEPTED")}
-                      className="bg-green-600 hover:bg-green-700 text-white"
+                        className="bg-green-600 hover:bg-green-700 text-white py-2 rounded-md"
                     >
                       <CheckCircle2 className="w-4 h-4 mr-1" />
                       Aceitar Pedido
@@ -220,7 +222,7 @@ export default function MerchantDashboard() {
                     <Button
                       size="sm"
                       onClick={() => handleStatusUpdate(order.id, "READY")}
-                      className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-md"
                     >
                       <Clock className="w-4 h-4 mr-1" />
                       Marcar como Pronto
@@ -231,7 +233,7 @@ export default function MerchantDashboard() {
                     <Button
                       size="sm"
                       onClick={() => handleStatusUpdate(order.id, "DELIVERED")}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-md"
                     >
                       <Truck className="w-4 h-4 mr-1" />
                       Pedido Entregue
@@ -243,6 +245,7 @@ export default function MerchantDashboard() {
           ))}
         </div>
       )}
-    </div>
+      </>
+    </PageContainer>
   );
 }

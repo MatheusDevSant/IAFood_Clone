@@ -26,6 +26,24 @@ export default function Profile() {
   const [showAddressModal, setShowAddressModal] = useState(false);
   const navigate = useNavigate();
 
+  // Helper to avoid showing raw 'null' or 'Demo' strings coming from DB
+  const safeText = (s) => {
+    if (s === null || s === undefined) return "";
+    if (typeof s !== "string") return String(s);
+    const cleaned = s.trim();
+    if (!cleaned) return "";
+    const lowered = cleaned.toLowerCase();
+    if (lowered === "null" || lowered === "demo" || lowered === "n/a") return "";
+    return cleaned;
+  };
+
+  const formatAddress = (a) => {
+    const label = safeText(a.label) || safeText(a.address_line);
+    const parts = [safeText(a.city), safeText(a.state), safeText(a.postal_code)].filter(Boolean);
+    const details = parts.length ? parts.join(" - ") : "";
+    return { label: label || details || "Endereço não especificado", details };
+  };
+
   const getRoleLabel = (role) => {
     switch (role) {
       case "client":
@@ -113,7 +131,7 @@ export default function Profile() {
           <div className="bg-primary/10 dark:bg-primary/20 rounded-full p-4 mb-3">
             <User className="w-12 h-12 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold">{profile.name || "Usuário"}</h1>
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight drop-shadow-sm">{profile.name || "Usuário"}</h1>
           <p className="text-gray-500 dark:text-gray-400 flex items-center gap-2">
             <Briefcase className="w-4 h-4" />
             {getRoleLabel(profile.role)}
@@ -157,32 +175,37 @@ export default function Profile() {
         {profile.role === 'client' && (
           <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-md border border-gray-100 dark:border-gray-800 mt-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Endereços</h3>
-              <button onClick={() => setShowAddressModal(true)} className="px-3 py-2 bg-blue-600 text-white rounded">Adicionar</button>
-            </div>
+                <h3 className="text-lg font-semibold">Endereços</h3>
+                <button onClick={() => setShowAddressModal(true)} className="px-3 py-2 bg-blue-600 text-white rounded-md">Adicionar</button>
+              </div>
 
             {addresses.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhum endereço cadastrado.</p>
             ) : (
               <ul className="space-y-2">
-                {addresses.map((a) => (
-                  <li key={a.id} className="flex justify-between items-center p-2 border rounded">
-                    <div>
-                      <div className="font-semibold">{a.label || a.address_line}</div>
-                      <div className="text-sm text-gray-500">{a.city} {a.state} {a.postal_code}</div>
-                    </div>
-                    <div className="flex gap-2">
-                      <button onClick={async () => {
-                        // excluir
-                        try {
-                          const token = localStorage.getItem('token');
-                          await axios.delete(`http://localhost:3000/addresses/${a.id}`, { headers: { Authorization: `Bearer ${token}` } });
-                          setAddresses((s) => s.filter(x => x.id !== a.id));
-                        } catch (e) { console.error('Erro ao deletar', e); }
-                      }} className="px-2 py-1 bg-red-500 text-white rounded">Excluir</button>
-                    </div>
-                  </li>
-                ))}
+                {addresses.map((a) => {
+                  const formatted = formatAddress(a);
+                  return (
+                    <li key={a.id} className="flex justify-between items-center p-2 border rounded-md">
+                      <div>
+                        <div className="font-semibold">{formatted.label}</div>
+                        {formatted.details && (
+                          <div className="text-sm text-gray-500">{formatted.details}</div>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={async () => {
+                          // excluir
+                          try {
+                            const token = localStorage.getItem('token');
+                            await axios.delete(`http://localhost:3000/addresses/${a.id}`, { headers: { Authorization: `Bearer ${token}` } });
+                            setAddresses((s) => s.filter(x => x.id !== a.id));
+                          } catch (e) { console.error('Erro ao deletar', e); }
+                        }} className="px-2 py-1 bg-red-500 text-white rounded">Excluir</button>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
@@ -243,17 +266,19 @@ export default function Profile() {
         )}
 
         {/* Botão de sair */}
-        <Button
-          onClick={() => {
-            logout();
-            navigate("/");
-          }}
-          variant="destructive"
-          className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white"
-        >
-          <LogOut className="w-4 h-4" />
-          Sair
-        </Button>
+        <div className="mt-6">
+          <Button
+            onClick={() => {
+              logout();
+              navigate("/");
+            }}
+            variant="destructive"
+            className="w-full flex items-center justify-center gap-2"
+          >
+            <LogOut className="w-4 h-4" />
+            Sair
+          </Button>
+        </div>
       </div>
     </div>
   );

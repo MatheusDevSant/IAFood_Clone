@@ -12,15 +12,22 @@ const menuRoutes = require("./src/routes/menu");
 const ordersRoutes = require("./src/routes/orders");
 const assignmentsRoutes = require("./src/routes/assignments");
 const addressesRoutes = require("./src/routes/addresses");
+const demoRoutes = require('./src/routes/demo');
 const rateLimitMiddleware = require('./src/middleware/rateLimit');
 
 const app = express();
 const server = http.createServer(app);
 
+// 🔹 Configuração de CORS (permitir múltiplas origens, configurável via .env)
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:5174')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 // 🔹 Configuração do Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: allowedOrigins, // aceita array de origens
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -32,9 +39,15 @@ app.use((req, res, next) => {
   next();
 });
 
+// Middleware CORS que aceita múltiplas origens ou responde dinamicamente
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: (origin, callback) => {
+      // origin == undefined quando chamada por ferramentas (curl, Postman) ou same-origin
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error('CORS policy: origin not allowed'));
+    },
     credentials: true,
   })
 );
@@ -48,6 +61,7 @@ app.use("/addresses", addressesRoutes);
 console.log("🧭 Registrando rotas do módulo:", typeof ordersRoutes);
 app.use("/orders", rateLimitMiddleware, ordersRoutes); 
 app.use("/assignments", assignmentsRoutes);
+app.use('/demo', demoRoutes);
 console.log("✅ Rotas /orders registradas com sucesso");
 app.use("/", menuRoutes);
 

@@ -12,7 +12,7 @@ export default function Verify() {
 
   useEffect(() => {
 
-    console.log("Demo verification code: 123456");
+    console.log("Verification code (dev): 123456");
   }, []);
 
   const handleValidate = () => {
@@ -21,8 +21,8 @@ export default function Verify() {
     if (code === "123456" && pending) {
       const pendingObj = JSON.parse(pending);
       // create fake token and user
-      const fakeToken = "demo-token." + btoa(JSON.stringify({ role })) + ".sig";
-      const userData = pendingObj.user || { name: "Demo User", email: "demo@iafood" };
+      const fakeToken = "dev-token." + btoa(JSON.stringify({ role })) + ".sig";
+      const userData = pendingObj.user || { name: "Usuário de Exemplo", email: "exemplo@iafood" };
       const user = { ...userData, role };
       // login in AuthContext using demo data
       login(fakeToken, user);

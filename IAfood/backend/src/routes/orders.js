@@ -315,7 +315,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
 =========================================================== */
 router.post("/:id/status", authMiddleware, async (req, res) => {
   const { status } = req.body;
-  const valid = ["ACCEPTED", "READY", "DELIVERED", "CANCELLED"];
+  const valid = ["ACCEPTED", "READY", "PICKED_UP", "DELIVERED", "CANCELLED"];
   if (!valid.includes(status))
     return res.status(400).json({ error: "Status inválido" });
 

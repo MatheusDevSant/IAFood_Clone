@@ -47,7 +47,7 @@ export default function AddressModal({ initial = {}, onSave, onCancel, title = '
         <h3 className="text-lg font-semibold mb-4">{title}</h3>
         <div className="grid gap-2">
           <input className="p-2 border" placeholder="Etiqueta (ex: Casa, Trabalho)" value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} />
-          <input className="p-2 border" placeholder="Endereço" value={form.address_line} onChange={(e) => setForm({ ...form, address_line: e.target.value })} />
+          <input className="p-2 border" placeholder="Endereço completo (Rua, número, complemento)" value={form.address_line} onChange={(e) => setForm({ ...form, address_line: e.target.value })} />
           <div className="grid grid-cols-2 gap-2">
             <input className="p-2 border" placeholder="Cidade" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
             <input className="p-2 border" placeholder="Estado" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} />

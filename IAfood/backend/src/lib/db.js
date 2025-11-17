@@ -1,33 +1,38 @@
-const mysql = require("mysql2/promise");
-require("dotenv").config();
+const mysql = require('mysql2/promise');
+require('dotenv').config();
 
-let connection;
+let pool;
 
-// cria conexão única (sem pool)
-async function initDB() {
-  if (!connection) {
-    try {
-      connection = await mysql.createConnection({
-        host: process.env.DB_HOST || "localhost",
-        user: process.env.DB_USER || "root",
-        password: process.env.DB_PASS || "",
-        database: process.env.DB_NAME || "ifood_clone",
-      });
-      console.log("✅ Conectado ao banco MySQL com sucesso!");
-    } catch (err) {
-      console.error("❌ Erro ao conectar ao MySQL:", err);
-      process.exit(1);
-    }
+function initPool() {
+  if (!pool) {
+    pool = mysql.createPool({
+      host: process.env.DB_HOST || 'localhost',
+      user: process.env.DB_USER || 'root',
+      password: process.env.DB_PASS || '',
+      database: process.env.DB_NAME || 'ifood_clone',
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+    });
+    console.log('✅ MySQL pool criado');
   }
-  return connection;
+  return pool;
 }
 
-// wrapper que permite usar await db.query(...)
 module.exports = {
+  // Query helper que mantém compatibilidade com o código existente (retorna [rows])
   query: async (sql, params) => {
-    const conn = await initDB();
-    const [rows] = await conn.query(sql, params);
+    const p = initPool();
+    const [rows] = await p.query(sql, params);
     return [rows];
+  },
+
+  // Expõe getConnection para permitir transações (conn.beginTransaction(), commit(), rollback(), release())
+  getConnection: async () => {
+    const p = initPool();
+    const conn = await p.getConnection();
+    // conn é um objeto connection do mysql2; o código atual espera métodos query, beginTransaction, commit, rollback, release
+    return conn;
   },
 };
   

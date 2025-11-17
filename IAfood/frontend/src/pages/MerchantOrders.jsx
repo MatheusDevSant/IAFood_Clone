@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import PageContainer from "@/components/ui/PageContainer";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -68,8 +69,9 @@ export default function MerchantOrders() {
     );
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10">
-      <h1 className="text-3xl font-extrabold mb-8 bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
+    <PageContainer innerClassName="max-w-5xl mx-auto px-6 py-10">
+      <>
+      <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight drop-shadow-sm mb-8 bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
         📦 Pedidos do Restaurante
       </h1>
 
@@ -82,7 +84,7 @@ export default function MerchantOrders() {
           {orders.map((order) => (
             <div
               key={order.id}
-              className="p-5 border border-green-300 rounded-lg shadow-sm bg-white dark:bg-gray-900 transition-all hover:shadow-md"
+              className="p-5 border border-green-300 rounded-2xl shadow-sm bg-white dark:bg-gray-900 transition-all hover:shadow-md"
             >
               <div className="flex justify-between items-center mb-3">
                 <h2 className="font-semibold text-green-700">
@@ -118,7 +120,7 @@ export default function MerchantOrders() {
                 {order.status === "PLACED" && (
                   <Button
                     onClick={() => updateStatus(order.id, "ACCEPTED")}
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    className="bg-green-600 hover:bg-green-700 text-white py-2 rounded-md"
                   >
                     Aceitar
                   </Button>
@@ -126,7 +128,7 @@ export default function MerchantOrders() {
                 {order.status === "ACCEPTED" && (
                   <Button
                     onClick={() => updateStatus(order.id, "READY")}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-md"
                   >
                     Pedido Pronto
                   </Button>
@@ -134,7 +136,7 @@ export default function MerchantOrders() {
                 {order.status === "READY" && (
                   <Button
                     onClick={() => updateStatus(order.id, "DELIVERED")}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-md"
                   >
                     Entregar
                   </Button>
@@ -144,6 +146,7 @@ export default function MerchantOrders() {
           ))}
         </div>
       )}
-    </div>
+      </>
+    </PageContainer>
   );
 }

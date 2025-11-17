@@ -23,17 +23,31 @@ const mysql = require('mysql2/promise');
     await db.query('DELETE FROM users');
 
     const restaurantes = [
-      { nome: 'Burger House', categorias: ['Lanches', 'Bebidas', 'Sobremesas'] },
-      { nome: 'Pizzaria Napoli', categorias: ['Pizzas', 'Massas', 'Bebidas'] },
-      { nome: 'Sushi Express', categorias: ['Combinados', 'Temakis', 'Bebidas'] },
-      { nome: 'Doce Mania', categorias: ['Tortas', 'Doces', 'Bebidas'] },
+      { nome: 'Burger House', categorias: ['Lanches', 'Bebidas', 'Sobremesas'], lat: -23.55052, lng: -46.63331 },
+      { nome: 'Pizzaria Napoli', categorias: ['Pizzas', 'Massas', 'Bebidas'], lat: -23.55110, lng: -46.63250 },
+      { nome: 'Sushi Express', categorias: ['Combinados', 'Temakis', 'Bebidas'], lat: -23.55220, lng: -46.63400 },
+      { nome: 'Doce Mania', categorias: ['Tortas', 'Doces', 'Bebidas'], lat: -23.54980, lng: -46.63150 },
+      { nome: 'Taco Loco', categorias: ['Tacos', 'Bebidas'], lat: -23.55300, lng: -46.63550 },
+      { nome: 'Café Central', categorias: ['Sanduíches', 'Bebidas', 'Doces'], lat: -23.54850, lng: -46.63000 },
     ];
 
     const itens = {
       Lanches: [
+        // itens originais que já existiam (mantidos)
         { nome: 'X-Burger', desc: 'Hambúrguer artesanal com queijo cheddar e maionese especial', preco: 24.9 },
         { nome: 'X-Salada', desc: 'Clássico com alface, tomate e queijo', preco: 26.5 },
         { nome: 'Batata Frita', desc: 'Porção crocante com 200g', preco: 14.9 },
+        { nome: 'X-Burger Especial', desc: 'Hambúrguer especial da casa com molho secreto', preco: 34.5 },
+
+        // 8 novos itens adicionais
+        { nome: 'Cheeseburger Supremo', desc: 'Hambúrguer bovino suculento, queijo cheddar, cebola caramelizada e molho especial', preco: 29.9 },
+        { nome: 'Bacon Smash', desc: 'Hambúrguer smash com camada extra de bacon crocante e queijo derretido', preco: 32.5 },
+        { nome: 'Duplo Bacon Deluxe', desc: 'Dois discos de carne, bacon, queijo e maionese defumada', preco: 39.0 },
+        { nome: 'Veggie Burger', desc: 'Hambúrguer à base de grão-de-bico e beterraba com molho de ervas', preco: 27.0 },
+        { nome: 'Chicken Crisp', desc: 'Peito de frango empanado, alface, picles e molho picante', preco: 28.5 },
+        { nome: 'BBQ Ranch Burger', desc: 'Hambúrguer com molho barbecue, onion rings e queijo prato', preco: 33.0 },
+        { nome: 'Mushroom & Swiss', desc: 'Hambúrguer com cogumelos salteados e queijo suíço cremoso', preco: 34.0 },
+        { nome: 'Egg & Cheese', desc: 'Hambúrguer com ovo frito, queijo e maionese de ervas', preco: 30.0 },
       ],
       Bebidas: [
         { nome: 'Coca-Cola Lata', desc: '350ml gelada', preco: 6.9 },
@@ -83,8 +97,8 @@ const mysql = require('mysql2/promise');
 
       const [merchant] = await db.query(
         `INSERT INTO merchants (user_id, name, status, radius_km, lat, lng)
-         VALUES (?, ?, 'open', 5.0, -23.55, -46.63)`,
-        [userId, r.nome]
+         VALUES (?, ?, 'open', 5.0, ?, ?)`,
+        [userId, r.nome, r.lat, r.lng]
       );
       const merchantId = merchant.insertId;
 
@@ -108,20 +122,34 @@ const mysql = require('mysql2/promise');
     }
 
     console.log('✅ Banco populado com sucesso com cardápios reais!');
-    // Criar um usuário cliente e alguns endereços para demonstração
-    console.log('👤 Criando usuário cliente e entregador de teste...');
-    // Observação: mantemos os emails com sufixo 'demo' para teste, mas os nomes são genéricos
-    const [clientUser] = await db.query(`INSERT INTO users (role, name, email, phone, password_hash) VALUES ('client', ?, ?, ?, '123')`, ['Cliente', 'cliente@demo.com', '11988887777']);
-    const clientId = clientUser.insertId;
+    // Criar vários usuários clientes e entregadores com endereços reais/plaúsiveis
+    console.log('� Criando usuários clientes e entregadores...');
 
-    // cria dois endereços para o cliente (próximos aos restaurants)
-    await db.query(`INSERT INTO addresses (user_id, geohash, lat, lng, label, address_line, city, state, postal_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [clientId, null, -23.551, -46.633, 'Casa Demo', 'Rua Demo 123', 'São Paulo', 'SP', '01000-000']);
-    await db.query(`INSERT INTO addresses (user_id, geohash, lat, lng, label, address_line, city, state, postal_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [clientId, null, -23.554, -46.637, 'Trabalho Demo', 'Av. Demo 45', 'São Paulo', 'SP', '01000-001']);
+    const clientes = [
+      { name: 'Ana Silva', email: 'ana.silva@example.com', phone: '11990001111', addresses: [ {lat: -23.5512, lng: -46.6335, label: 'Casa Ana', address_line: 'R. Joaquim Floriano, 1000'}, {lat: -23.5489, lng: -46.6310, label: 'Trabalho Ana', address_line: 'Av. Paulista, 1500'} ] },
+      { name: 'Bruno Costa', email: 'bruno.costa@example.com', phone: '11990002222', addresses: [ {lat: -23.5525, lng: -46.6352, label: 'Casa Bruno', address_line: 'R. Augusta, 2300'} ] },
+      { name: 'Carla Souza', email: 'carla.souza@example.com', phone: '11990003333', addresses: [ {lat: -23.5495, lng: -46.6322, label: 'Casa Carla', address_line: 'R. Oscar Freire, 450'} ] },
+    ];
 
-    // cria um entregador (usuário + registro em couriers)
-    const [courierUser] = await db.query(`INSERT INTO users (role, name, email, phone, password_hash) VALUES ('courier', ?, ?, ?, '123')`, ['Entregador', 'courier@demo.com', '11977776666']);
-    const courierUserId = courierUser.insertId;
-    await db.query(`INSERT INTO couriers (user_id, is_online, lat, lng, rating, last_active) VALUES (?, 1, ?, ?, 4.8, NOW())`, [courierUserId, -23.552, -46.635]);
+    for (const c of clientes) {
+      const [cu] = await db.query(`INSERT INTO users (role, name, email, phone, password_hash) VALUES ('client', ?, ?, ?, '123')`, [c.name, c.email, c.phone]);
+      const clientId = cu.insertId;
+      for (const a of c.addresses) {
+        await db.query(`INSERT INTO addresses (user_id, geohash, lat, lng, label, address_line, city, state, postal_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [clientId, null, a.lat, a.lng, a.label, a.address_line, 'São Paulo', 'SP', '01310-000']);
+      }
+    }
+
+    const entregadores = [
+      { name: 'Rafael Moto', email: 'rafael.moto@example.com', phone: '11990004444', lat: -23.5510, lng: -46.6340 },
+      { name: 'Luiza Entrega', email: 'luiza.entrega@example.com', phone: '11990005555', lat: -23.5530, lng: -46.6360 },
+      { name: 'Tiago Rápido', email: 'tiago.rapido@example.com', phone: '11990006666', lat: -23.5490, lng: -46.6325 },
+    ];
+
+    for (const e of entregadores) {
+      const [eu] = await db.query(`INSERT INTO users (role, name, email, phone, password_hash) VALUES ('courier', ?, ?, ?, '123')`, [e.name, e.email, e.phone]);
+      const courierUserId = eu.insertId;
+      await db.query(`INSERT INTO couriers (user_id, is_online, lat, lng, rating, last_active) VALUES (?, 1, ?, ?, 4.7, NOW())`, [courierUserId, e.lat, e.lng]);
+    }
 
     await db.end();
   } catch (err) {

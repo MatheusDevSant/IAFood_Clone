@@ -6,6 +6,7 @@ export default function CourierAssignmentListener({ user }) {
   const [socket, setSocket] = useState(null);
   const [proposal, setProposal] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
+  const [loadingResponse, setLoadingResponse] = useState(false);
 
   useEffect(() => {
     if (!user || user.role !== "courier") return;
@@ -54,11 +55,18 @@ export default function CourierAssignmentListener({ user }) {
   const respond = async (action) => {
     if (!proposal) return;
     try {
-      await api.post(`/assignments/${proposal.id}/respond`, { action });
+      setLoadingResponse(true);
+      const res = await api.post(`/assignments/${proposal.id}/respond`, { action });
+      console.log('assignment respond success', res.data);
       setProposal(null);
       setSecondsLeft(0);
+      setLoadingResponse(false);
     } catch (err) {
       console.error("Erro ao responder assignment:", err);
+      let msg = 'Erro ao responder assignment';
+      if (err.response && err.response.data) msg = JSON.stringify(err.response.data);
+      alert(msg);
+      setLoadingResponse(false);
     }
   };
 
@@ -72,8 +80,8 @@ export default function CourierAssignmentListener({ user }) {
         <p className="mt-2">Tempo restante: <strong>{secondsLeft}s</strong></p>
 
         <div className="flex gap-2 mt-4">
-          <button className="btn btn-danger flex-1" onClick={() => respond('REJECT')}>Recusar</button>
-          <button className="btn btn-primary flex-1" onClick={() => respond('ACCEPT')}>Aceitar</button>
+          <button className="btn btn-danger flex-1" onClick={() => respond('REJECT')} disabled={loadingResponse}>{loadingResponse ? 'Processando...' : 'Recusar'}</button>
+          <button className="btn btn-primary flex-1" onClick={() => respond('ACCEPT')} disabled={loadingResponse}>{loadingResponse ? 'Processando...' : 'Aceitar'}</button>
         </div>
       </div>
     </div>
