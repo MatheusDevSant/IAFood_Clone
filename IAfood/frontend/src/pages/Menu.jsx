@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import PageContainer from "@/components/ui/PageContainer";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -35,8 +36,8 @@ export default function Menu() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors">
-      <div className="max-w-5xl mx-auto px-6 py-10">
+    <PageContainer innerClassName="max-w-5xl mx-auto px-6 py-10">
+      <>
         {/* Botão Voltar */}
         <button
           onClick={() => window.history.back()}
@@ -46,7 +47,7 @@ export default function Menu() {
         </button>
 
         {/* Título */}
-        <h1 className="text-3xl md:text-4xl font-extrabold mb-8 bg-gradient-to-r from-purple-600 to-violet-500 bg-clip-text text-transparent">
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight drop-shadow-sm mb-8 bg-gradient-to-r from-purple-600 to-violet-500 bg-clip-text text-transparent">
           Cardápio
         </h1>
 
@@ -57,38 +58,84 @@ export default function Menu() {
 
             <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
               {cat.items.map((item) => (
-                <Card
-                  key={item.id}
-                  className="bg-card border border-border hover:border-primary transition"
-                >
-                  <CardContent className="p-5">
-                    <h3 className="font-semibold text-lg">{item.name}</h3>
-                    <p className="text-muted-foreground text-sm mb-2">
-                      {item.description}
-                    </p>
-                    <p className="text-primary font-bold text-lg mb-3">
-                      R$ {Number(item.price).toFixed(2)}
-                    </p>
-
-                    <Button
-                      onClick={() =>
-                        addItem({
-                          ...item,
-                          merchant_id: Number(id), // 👈 garante que o backend saiba de qual restaurante vem o item
-                          price: Number(item.price), // 👈 garante tipo numérico
-                        })
-                      }
-                      className="w-full bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      Adicionar
-                    </Button>
-                  </CardContent>
-                </Card>
+                <MenuItemCard key={item.id} item={item} addItem={addItem} merchantId={id} />
               ))}
             </div>
           </div>
         ))}
-      </div>
-    </div>
+      </>
+    </PageContainer>
+  );
+}
+
+function MenuItemCard({ item, addItem, merchantId }) {
+  const [options, setOptions] = useState({});
+
+  // placeholders locais usados como fallback visual quando item.image_url não existe
+  const placeholders = [
+    '/assets/x-salada.jpg.jpeg',
+    '/assets/batata.jpeg',
+    '/assets/cococola.jpeg',
+    '/assets/suco.jpeg',
+    '/assets/agua.jpeg',
+    '/assets/petit.jpeg',
+    '/assets/brownie.jpeg',
+    '/assets/xburguer.jpeg',
+  ];
+
+  const placeholderFor = () => {
+    if (item.image_url) return item.image_url;
+    const n = placeholders.length;
+    // usar id quando disponível, senão comprimento do nome como fallback determinístico
+    const key = item.id ? Number(item.id) : (item.name ? item.name.length : 0);
+    return placeholders[key % n];
+  };
+
+  // parse simple options from description tags like [opcion1,opcion2]
+  const parsedOptions = (item.options_json && JSON.parse(item.options_json)) || null;
+
+  const toggleOption = (key) => {
+    setOptions((s) => ({ ...s, [key]: !s[key] }));
+  };
+
+  return (
+    <Card className="bg-card border border-border hover:border-primary transition rounded-2xl">
+      <CardContent className="p-5">
+        {/* imagem: image_url vindo do backend (se houver) ou placeholder determinístico */}
+        <img src={placeholderFor()} alt={item.name} className="w-full h-40 object-cover rounded-lg mb-3" />
+
+        <h3 className="font-semibold text-lg">{item.name}</h3>
+        <p className="text-muted-foreground text-sm mb-2">{item.description}</p>
+        <p className="text-primary font-bold text-lg mb-3">R$ {Number(item.price).toFixed(2)}</p>
+
+        {parsedOptions && (
+          <div className="mb-3 text-sm">
+            <div className="font-medium mb-1">Opções</div>
+            <div className="flex flex-col gap-2">
+              {parsedOptions.map((opt, idx) => (
+                <label key={idx} className="flex items-center gap-2">
+                  <input type="checkbox" checked={!!options[opt]} onChange={() => toggleOption(opt)} />
+                  <span>{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <Button
+          onClick={() =>
+            addItem({
+              ...item,
+              merchant_id: Number(merchantId),
+              price: Number(item.price),
+              options,
+            })
+          }
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-md"
+        >
+          Adicionar
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

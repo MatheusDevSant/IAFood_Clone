@@ -42,7 +42,7 @@ export default function CourierAuth() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
       <div className="bg-gray-100 dark:bg-gray-900 p-8 rounded-2xl shadow-xl w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-4 text-center text-amber-600 dark:text-amber-400">
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4 text-center text-amber-600 dark:text-amber-400 drop-shadow-sm">
           {mode === "signup" ? "Cadastrar Entregador" : "Login do Entregador"}
         </h1>
 
@@ -54,7 +54,7 @@ export default function CourierAuth() {
                 name="name"
                 placeholder="Nome completo"
                 onChange={handleChange}
-                className="w-full p-3 rounded-lg border dark:bg-gray-800 dark:border-gray-700"
+                className="w-full p-3 rounded-md border dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-300 dark:focus:ring-amber-500"
                 required
               />
               <input
@@ -62,7 +62,7 @@ export default function CourierAuth() {
                 name="phone"
                 placeholder="Telefone de contato"
                 onChange={handleChange}
-                className="w-full p-3 rounded-lg border dark:bg-gray-800 dark:border-gray-700"
+                className="w-full p-3 rounded-md border dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-300 dark:focus:ring-amber-500"
                 required
               />
             </>
@@ -73,7 +73,7 @@ export default function CourierAuth() {
             name="email"
             placeholder="Email"
             onChange={handleChange}
-            className="w-full p-3 rounded-lg border dark:bg-gray-800 dark:border-gray-700"
+            className="w-full p-3 rounded-md border dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-300 dark:focus:ring-amber-500"
             required
           />
           <input
@@ -81,13 +81,13 @@ export default function CourierAuth() {
             name="password"
             placeholder="Senha"
             onChange={handleChange}
-            className="w-full p-3 rounded-lg border dark:bg-gray-800 dark:border-gray-700"
+            className="w-full p-3 rounded-md border dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-300 dark:focus:ring-amber-500"
             required
           />
 
           <Button
             type="submit"
-            className="w-full bg-amber-500 hover:bg-amber-600 text-white"
+            className="w-full bg-amber-500 hover:bg-amber-600 text-white py-3"
           >
             {mode === "signup" ? "Cadastrar" : "Entrar"}
           </Button>

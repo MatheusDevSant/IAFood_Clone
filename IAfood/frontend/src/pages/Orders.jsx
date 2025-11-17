@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import PageContainer from "@/components/ui/PageContainer";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
@@ -35,8 +36,9 @@ export default function Orders() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-10">
-      <h1 className="text-3xl font-extrabold mb-8 bg-gradient-to-r from-purple-600 to-violet-500 bg-clip-text text-transparent">
+    <PageContainer innerClassName="max-w-4xl mx-auto px-6 py-10">
+      <>
+      <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight drop-shadow-sm mb-8 bg-gradient-to-r from-purple-600 to-violet-500 bg-clip-text text-transparent">
         🧾 Meus Pedidos
       </h1>
 
@@ -49,7 +51,7 @@ export default function Orders() {
           {orders.map((order) => (
             <Card
               key={order.id}
-              className="border border-border hover:border-primary hover:shadow-lg transition"
+              className="border border-border hover:border-primary hover:shadow-lg transition rounded-2xl"
             >
               <CardContent className="p-5">
                 {/* Cabeçalho do pedido */}
@@ -116,6 +118,7 @@ export default function Orders() {
           ))}
         </div>
       )}
-    </div>
+      </>
+    </PageContainer>
   );
 }

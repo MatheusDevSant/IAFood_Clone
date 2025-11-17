@@ -12,6 +12,8 @@ import Menu from "@/pages/Menu";
 import ClientAuth from "@/pages/auth/ClientAuth";
 import MerchantAuth from "@/pages/auth/MerchantAuth";
 import CourierAuth from "@/pages/auth/CourierAuth";
+import Verify from "@/pages/auth/Verify";
+import "leaflet/dist/leaflet.css";
 
 
 // 👤 Perfis e fluxos
@@ -60,6 +62,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <Route path="auth/client" element={<ClientAuth />} />
               <Route path="auth/merchant" element={<MerchantAuth />} />
               <Route path="auth/courier" element={<CourierAuth />} />
+              <Route path="auth/verify" element={<Verify />} />
               <Route path="cart" element={<Cart />} />
 
               {/* 🔐 Rotas protegidas */}

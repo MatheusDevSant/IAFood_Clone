@@ -62,7 +62,7 @@ export default function MerchantAuth() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
       <div className="bg-gray-100 dark:bg-gray-900 p-8 rounded-2xl shadow-xl w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-4 text-center text-green-600 dark:text-green-400">
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight drop-shadow-sm mb-4 text-center bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
           {mode === "signup" ? "Cadastrar Restaurante" : "Login do Restaurante"}
         </h1>
 
@@ -74,7 +74,7 @@ export default function MerchantAuth() {
                 name="name"
                 placeholder="Nome do restaurante"
                 onChange={handleChange}
-                className="w-full p-3 rounded-lg border dark:bg-gray-800 dark:border-gray-700"
+                className="w-full p-3 rounded-md border dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-300"
                 required
               />
               <input
@@ -82,7 +82,7 @@ export default function MerchantAuth() {
                 name="phone"
                 placeholder="Telefone comercial"
                 onChange={handleChange}
-                className="w-full p-3 rounded-lg border dark:bg-gray-800 dark:border-gray-700"
+                className="w-full p-3 rounded-md border dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-300"
                 required
               />
             </>
@@ -93,7 +93,7 @@ export default function MerchantAuth() {
             name="email"
             placeholder="Email"
             onChange={handleChange}
-            className="w-full p-3 rounded-lg border dark:bg-gray-800 dark:border-gray-700"
+            className="w-full p-3 rounded-md border dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-300"
             required
           />
           <input
@@ -101,13 +101,13 @@ export default function MerchantAuth() {
             name="password"
             placeholder="Senha"
             onChange={handleChange}
-            className="w-full p-3 rounded-lg border dark:bg-gray-800 dark:border-gray-700"
+            className="w-full p-3 rounded-md border dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-300"
             required
           />
 
           <Button
             type="submit"
-            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-md"
           >
             {mode === "signup" ? "Cadastrar" : "Entrar"}
           </Button>
